@@ -20,29 +20,47 @@ const baseStyle = {
 };
 const modifyFile = (file) => {
   let formattedCSVtoJSON;
+  let validData = [];
+  let invalidDataMsg = [];
   Papa.parse(file[0], {
     complete: function (results) {
       // console.log("Finished:", results.data);
       results.data.splice(0, 1);
-      results.data.splice(results.data.length, 1);
+      results.data.splice(results.data.length-1, 1);
       formattedCSVtoJSON = results.data.map((item) => ({
         firstName: item[0],
         secondName: item[1],
         email: item[2],
       }));
-      // csv()
-      //   .fromFile(results.data)
-      //   .then((jsonObj) => {
-      //     formattedCSVtoJSON = jsonObj.map((item) =>
-      //       Object.assign({
-      //         firstName: Object.entries(item)[0][1],
-      //         secondName: Object.entries(item)[1][1],
-      //         email: Object.entries(item)[2][1],
-      //         ...item,
-      //       })
-      //     );
-      //   });
-      console.log(formattedCSVtoJSON);
+      formattedCSVtoJSON.forEach((element) => {
+        //  name error
+        let error = [];
+        if (!element?.firstName.match(/^(?=.{1,50}$)[a-z]+(?:['_.\s][a-z]+)*$/i)) {
+          //  result.push({message: `${element?.firstName} has to be a name`})
+          error = [...error, `first name`];
+        }
+        if (!element?.secondName.match(/^(?=.{1,50}$)[a-z]+(?:['_.\s][a-z]+)*$/i)) {
+          //  result.push({message: `${element?.secondName} has to be a name`})
+          error = [...error, `second name`];
+        }
+        if (
+          !element?.email.match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+          )
+        ) {
+          // result.push({message: element?.email })
+          error = [...error, `email`];
+        }
+        if (error.length > 0) {
+          error = `Row no ${formattedCSVtoJSON.indexOf(element) + 1} has ${
+            error.length > 1 ? "errors" : "error"
+          } on ${error.join(", ")}.`;
+          invalidDataMsg.push(error);
+        } else {
+          validData.push(element);
+        }
+      });
+      console.log({validData, invalidDataMsg });
     },
   });
   
